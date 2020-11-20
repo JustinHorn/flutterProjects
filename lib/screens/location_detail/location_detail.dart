@@ -7,10 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:app/models/location.dart';
 
 class LocationDetail extends StatelessWidget {
+  final int _locationID;
+
+  LocationDetail(this._locationID);
+
   @override
   Widget build(BuildContext context) {
-    final locations = Location.fetchAll();
-    final location = locations.first;
+    final location = Location.fetchByID(_locationID);
 
     return Scaffold(
         appBar: AppBar(
@@ -19,8 +22,10 @@ class LocationDetail extends StatelessWidget {
         body: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [ImageBanner(location.imagePath)]
-            ..addAll(textSections(location)),
+          children: [
+            ImageBanner(location.imagePath),
+            ...textSections(location)
+          ],
         ));
   }
 
