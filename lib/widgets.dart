@@ -43,3 +43,55 @@ class TaskCardWidget extends StatelessWidget {
   }
 }
 //"Hello User! Welcomne to WHAT_TODO app, this is a default task that you can edit or delete to start using the app.",
+
+class NoGlowBehaviour extends ScrollBehavior {
+  @override
+  Widget buildViewportChrome(
+      BuildContext context, Widget child, AxisDirection axisDirection) {
+    return child;
+  }
+}
+
+class TodoWidget extends StatelessWidget {
+  final String text;
+  final bool isDone;
+  TodoWidget({this.text, @required this.isDone});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        vertical: 8.0,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 20.0,
+            height: 20.0,
+            margin: EdgeInsets.only(right: 12.0),
+            decoration: BoxDecoration(
+                color: isDone ? Color(0xFF7349FE) : Colors.transparent,
+                borderRadius: BorderRadius.circular(5.0),
+                border: isDone
+                    ? null
+                    : Border.all(
+                        color: Color(0xFF868290),
+                        width: 2,
+                      )),
+            child: Image(
+              image: AssetImage("assets/images/check_icon.png"),
+            ),
+          ),
+          Text(
+            text ?? "Unnamed Todo",
+            style: TextStyle(
+              color: Color(0xFF211551),
+              fontSize: 16.0,
+              fontWeight: isDone ? FontWeight.bold : FontWeight.w200,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
