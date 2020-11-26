@@ -11,7 +11,6 @@ class DatabaseHelper {
     return openDatabase(
       join(await getDatabasesPath(), "todo.db"),
       onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
         db.execute(
           "CREATE TABLE tasks(id INTEGER PRIMARY KEY, title TEXT, description TEXT)",
         );
