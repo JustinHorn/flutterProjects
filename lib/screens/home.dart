@@ -6,6 +6,10 @@ import 'package:flutter/services.dart';
 
 import 'package:MovieApp/models/rating.dart';
 
+import 'package:MovieApp/extensions.dart';
+
+import "package:MovieApp/widgets/movie.dart";
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -16,11 +20,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int page = 2;
 
-  void _incrementCounter() {
+  void incrementPage() {
     setState(() {
-      _counter++;
+      page++;
     });
   }
 
@@ -42,80 +46,45 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: EdgeInsets.all(10.0),
         child: Center(
           child: FutureBuilder(
-            initialData: Movie.EMPTY(),
+            initialData: [Movie.EMPTY()],
             future: () async {
-              String jsonData = await rootBundle
-                  .loadString("assets/movieData/best/1917 (2020).json");
-              Map<String, dynamic> results = json.decode(jsonData);
+              final manifestJson = await DefaultAssetBundle.of(context)
+                  .loadString('AssetManifest.json');
+              final movieKeys = json
+                  .decode(manifestJson)
+                  .keys
+                  .where((String key) =>
+                      key.startsWith('assets/movieData') &&
+                      key.endsWith(".json"))
+                  .map((x) => x.replaceAll("%20", " "))
+                  .toList();
 
-              return Movie.fromMap(results);
+              List<Movie> movies = [];
+
+              for (int i = 0; i < page; i++) {
+                String jsonData = await rootBundle.loadString(movieKeys[i]);
+                Map<String, dynamic> results = json.decode(jsonData);
+                movies.add(Movie.fromMap(results));
+              }
+
+              return movies;
             }(),
             builder: (context, snapshot) {
-              return MovieWidget(key: ValueKey(1), movie: snapshot.data);
+              List<Movie> movies = snapshot.data;
+              return PageView(
+                controller: PageController(initialPage: page - 2),
+                onPageChanged: (int x) {
+                  if (x == page - 1) incrementPage();
+                },
+                children: movies
+                    .mapIndexed(
+                        (m, i) => MovieWidget(key: ValueKey(i), movie: m))
+                    .toList(),
+              );
             },
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
     );
-  }
-}
-
-class MovieWidget extends StatelessWidget {
-  final Movie movie;
-
-  const MovieWidget({Key key, this.movie}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: [
-          Text(movie.name),
-          Image(
-            image: AssetImage(movie.getImageAssetLocation()),
-          ),
-          Text(movie.description),
-          RatingWidget(
-            key: ValueKey("rW1"),
-            ratings: movie.ratings,
-          ),
-          CategoryWidget(
-            key: ValueKey("cW1"),
-            categories: movie.categories,
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class RatingWidget extends StatelessWidget {
-  final List<Rating> ratings;
-
-  const RatingWidget({Key key, this.ratings}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: ratings
-          .map((rating) => Text(rating.critic + " " + rating.rating))
-          .toList(),
-    );
-  }
-}
-
-class CategoryWidget extends StatelessWidget {
-  final List<String> categories;
-
-  const CategoryWidget({Key key, this.categories}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: categories.map((x) => Text(x)).toList());
   }
 }
