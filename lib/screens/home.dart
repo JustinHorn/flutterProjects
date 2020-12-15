@@ -1,16 +1,16 @@
 import 'dart:convert';
 
-import 'package:MovieApp/models/movie.dart';
+import 'package:Movie_Suggester/models/movie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:MovieApp/models/rating.dart';
+import 'package:Movie_Suggester/models/rating.dart';
 
-import 'package:MovieApp/extensions.dart';
+import 'package:Movie_Suggester/extensions.dart';
 
-import "package:MovieApp/widgets/movie.dart";
+import "package:Movie_Suggester/widgets/movie.dart";
 
-import 'package:MovieApp/helpers.dart';
+import 'package:Movie_Suggester/helpers.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);

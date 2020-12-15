@@ -1,4 +1,4 @@
-import 'package:MovieApp/models/rating.dart';
+import 'package:Movie_Suggester/models/rating.dart';
 
 enum Status { best, unknown, underrated }
 

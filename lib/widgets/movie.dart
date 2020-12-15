@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:MovieApp/models/movie.dart';
-import 'package:MovieApp/models/rating.dart';
+import 'package:Movie_Suggester/models/movie.dart';
+import 'package:Movie_Suggester/models/rating.dart';
 
 import 'ratings.dart';
 import 'categories.dart';

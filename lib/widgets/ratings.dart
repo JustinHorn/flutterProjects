@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:MovieApp/models/rating.dart';
+import 'package:Movie_Suggester/models/rating.dart';
 
 class RatingTable extends StatelessWidget {
   final List<Rating> ratings;
