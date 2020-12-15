@@ -10,6 +10,8 @@ import 'package:MovieApp/extensions.dart';
 
 import "package:MovieApp/widgets/movie.dart";
 
+import 'dart:math';
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -20,17 +22,40 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int page = 2;
+  int pages = 2;
 
-  void incrementPage() {
-    setState(() {
-      page++;
-    });
-  }
+  List<Movie> movies = [Movie.EMPTY(), Movie.EMPTY()];
 
   @override
   void initState() {
     super.initState();
+    getMovies([]).then((value) => setState(() {
+          movies = value;
+        }));
+  }
+
+  Future<List<Movie>> getMovies(List<Movie> start) async {
+    final manifestJson =
+        await DefaultAssetBundle.of(context).loadString('AssetManifest.json');
+    final movieKeys = json
+        .decode(manifestJson)
+        .keys
+        .where((String key) =>
+            key.startsWith('assets/movieData') && key.endsWith(".json"))
+        .map((x) => x.replaceAll("%20", " "))
+        .toList();
+    var rng = new Random();
+
+    print("mkl" + movieKeys.length.toString());
+    List<Movie> newMovies = [...start];
+
+    for (int i = 0; i < pages; i++) {
+      String jsonData =
+          await rootBundle.loadString(movieKeys[rng.nextInt(movieKeys.length)]);
+      Map<String, dynamic> results = json.decode(jsonData);
+      newMovies.add(Movie.fromMap(results));
+    }
+    return newMovies;
   }
 
   @override
@@ -45,43 +70,20 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Container(
         padding: EdgeInsets.all(10.0),
         child: Center(
-          child: FutureBuilder(
-            initialData: [Movie.EMPTY()],
-            future: () async {
-              final manifestJson = await DefaultAssetBundle.of(context)
-                  .loadString('AssetManifest.json');
-              final movieKeys = json
-                  .decode(manifestJson)
-                  .keys
-                  .where((String key) =>
-                      key.startsWith('assets/movieData') &&
-                      key.endsWith(".json"))
-                  .map((x) => x.replaceAll("%20", " "))
-                  .toList();
+          child: PageView(
+            controller: PageController(initialPage: pages - 2),
+            onPageChanged: (int x) {
+              if (x == pages - 1) {
+                getMovies(movies).then((List<Movie> value) => setState(() {
+                      movies = value;
 
-              List<Movie> movies = [];
-
-              for (int i = 0; i < page; i++) {
-                String jsonData = await rootBundle.loadString(movieKeys[i]);
-                Map<String, dynamic> results = json.decode(jsonData);
-                movies.add(Movie.fromMap(results));
+                      pages = value.length;
+                    }));
               }
-
-              return movies;
-            }(),
-            builder: (context, snapshot) {
-              List<Movie> movies = snapshot.data;
-              return PageView(
-                controller: PageController(initialPage: page - 2),
-                onPageChanged: (int x) {
-                  if (x == page - 1) incrementPage();
-                },
-                children: movies
-                    .mapIndexed(
-                        (m, i) => MovieWidget(key: ValueKey(i), movie: m))
-                    .toList(),
-              );
             },
+            children: movies
+                .mapIndexed((m, i) => MovieWidget(key: ValueKey(i), movie: m))
+                .toList(),
           ),
         ),
       ),

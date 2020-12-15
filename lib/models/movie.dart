@@ -49,7 +49,7 @@ class Movie {
     return Movie(
       map["name"],
       getStatusByName(map["page"]),
-      map["description"].replaceAll("\\n","").trim(),
+      map["description"].replaceAll("\\n", "").trim(),
       ratings,
       List<String>.from(map["categories"]),
     );
@@ -57,10 +57,12 @@ class Movie {
 
   static Movie EMPTY() {
     return Movie.fromMap({
-      "name": "63 Up (2019)",
+      "name": "EmPtY",
       "page": "best",
       "description": "",
-      "ratings": [],
+      "ratings": [
+        {"critic": "", "rating": ""}
+      ],
       "categories": []
     });
   }

@@ -11,7 +11,7 @@ class RatingTable extends StatelessWidget {
     List<Widget> critics = ratings
         .map((rating) => Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(rating.critic,
+              child: Text(rating.critic + "",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   )),
@@ -20,7 +20,7 @@ class RatingTable extends StatelessWidget {
     List<Widget> results = ratings
         .map((rating) => Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(rating.rating),
+              child: Text(rating.rating + ""),
             ))
         .toList();
     return Table(

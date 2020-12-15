@@ -22,9 +22,11 @@ class MovieWidget extends StatelessWidget {
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 )),
-            Image(
-              image: AssetImage(movie.getImageAssetLocation()),
-            ),
+            (movie.name != "EmPtY")
+                ? Image(
+                    image: AssetImage(movie.getImageAssetLocation()),
+                  )
+                : Text("null"),
             SizedBox(
               height: 10,
               width: 0,
