@@ -10,7 +10,7 @@ import 'package:MovieApp/extensions.dart';
 
 import "package:MovieApp/widgets/movie.dart";
 
-import 'dart:math';
+import 'package:MovieApp/helpers.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -25,6 +25,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int pages = 2;
 
   List<Movie> movies = [Movie.EMPTY(), Movie.EMPTY()];
+
+  UniqueRandomNumber unique = UniqueRandomNumber();
 
   @override
   void initState() {
@@ -50,8 +52,8 @@ class _MyHomePageState extends State<MyHomePage> {
     List<Movie> newMovies = [...start];
 
     for (int i = 0; i < pages; i++) {
-      String jsonData =
-          await rootBundle.loadString(movieKeys[rng.nextInt(movieKeys.length)]);
+      String jsonData = await rootBundle.loadString(
+          movieKeys[unique.getUniqueRandomNumber(movieKeys.length)]);
       Map<String, dynamic> results = json.decode(jsonData);
       newMovies.add(Movie.fromMap(results));
     }
