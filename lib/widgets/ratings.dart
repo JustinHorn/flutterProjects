@@ -30,6 +30,7 @@ class RatingTable extends StatelessWidget {
         const FixedColumnWidth(100.0),
         FractionColumnWidth(0.2),
       ),
+      textBaseline: TextBaseline.alphabetic,
       children: [
         TableRow(
           children: critics,
