@@ -46,7 +46,6 @@ class _MyHomePageState extends State<MyHomePage> {
             key.startsWith('assets/movieData') && key.endsWith(".json"))
         .map((x) => x.replaceAll("%20", " "))
         .toList();
-    var rng = new Random();
 
     print("mkl" + movieKeys.length.toString());
     List<Movie> newMovies = [...start];
