@@ -1,44 +1,15 @@
+import 'dart:collection';
+
+import 'package:RickAndMortyApi/helpers/getSingleCharacter.dart';
 import 'package:RickAndMortyApi/models/character.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-Future<Character> getSingleCharacter(int characterId) async {
-  String query = """query {
-  character(id:${characterId}) {
-      id
-       name
-       image
-      status      
-      species
-      type
-      gender
-      location {
-        name 
-      }
-      origin {
-        name
-      }
-      episode {
-        name
-      }
-    
-  }
-}""";
-
-  http.Response response = await http
-      .post("https://rickandmortyapi.com/graphql", body: {"query": query});
-
-  Character character =
-      Character.fromJSON(jsonDecode(response.body)["data"]["character"]);
-  print("character ${character.name} has been fetched ");
-  return character;
-}
-
 class CharacterWidget extends StatelessWidget {
   final int characterId;
 
-  Future character;
+  final Future character;
   CharacterWidget({
     Key key,
     @required this.characterId,

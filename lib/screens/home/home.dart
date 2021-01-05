@@ -23,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  bool search = false;
+  bool searching = false;
 
   void getCharactersByName(String name) {
     String query = """query {
@@ -64,25 +64,29 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Stack(children: [
             Opacity(
-                opacity: search ? 0.5 : 1,
+                opacity: 1,
                 child: CharactersWidget(
+                  key: ObjectKey("characterList"),
                   firstCharacterId: firstCharacterId,
                 )),
-            if (search)
+            if (searching)
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.1,
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: MediaQuery.of(context).size.width * 0.1,
                   ),
-                  width: MediaQuery.of(context).size.width * 0.8,
+                  width: MediaQuery.of(context).size.width * 0.9,
                   height: MediaQuery.of(context).size.height * 0.8,
                   child: ListView(
                     children: nameIdResults
                         .map((nameId) => FlatButton(
-                            onPressed: () => setState(() {
-                                  this.firstCharacterId = nameId.id;
-                                }),
+                            color: Color(0xffc3deca),
+                            onPressed: () {
+                              setState(() {
+                                firstCharacterId = nameId.id;
+                              });
+                            },
                             child: Text("${nameId.id} ${nameId.name}")))
                         .toList(),
                   ),
@@ -92,18 +96,38 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: getFloatingActionButtons(context),
+      floatingActionButton: FloatingActionButtons(
+          searching: searching,
+          toggleSearching: toggleSearching,
+          onSubmitted: getCharactersByName),
     );
   }
 
-  Widget getFloatingActionButtons(context) {
+  void toggleSearching() {
+    setState(() {
+      searching = !searching;
+    });
+  }
+}
+
+class FloatingActionButtons extends StatelessWidget {
+  final bool searching;
+  final Function toggleSearching;
+  final Function onSubmitted;
+
+  const FloatingActionButtons(
+      {Key key, this.searching, this.toggleSearching, this.onSubmitted})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(""),
-          if (search)
+          if (searching)
             Container(
               padding: EdgeInsets.all(5),
               width: 200.0,
@@ -111,18 +135,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: Colors.purple,
                   borderRadius: BorderRadius.all(Radius.circular(5))),
               child: TextField(
-                onSubmitted: (text) {
-                  getCharactersByName(text);
-                },
+                onSubmitted: onSubmitted,
                 style: TextStyle(color: Colors.white),
               ),
             ),
           FloatingActionButton(
-            onPressed: () {
-              setState(() {
-                search = !search;
-              });
-            },
+            onPressed: toggleSearching,
             child: Icon(Icons.search),
             backgroundColor: Colors.purple,
           ),

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:RickAndMortyApi/models/character.dart';
 import 'dart:convert';
 
@@ -39,14 +41,16 @@ class _CharactersWidgetState extends State<CharactersWidget> {
 
   initCharacters() {
     characterIds = [];
+    add10IdsSorted(widget.firstCharacterId);
+    add10IdsSorted(widget.firstCharacterId - 10);
+
+    characterIds.sort((a, b) => a - b);
+  }
+
+  add10IdsSorted(int startValue) {
     for (int i = 0; i < 10; i++) {
-      if (widget.firstCharacterId + i >= 1) {
-        characterIds.add(widget.firstCharacterId + i);
-      }
-    }
-    for (int i = 0; i < 10; i++) {
-      if (widget.firstCharacterId - 10 + i >= 1) {
-        characterIds.add(widget.firstCharacterId - 10 + i);
+      if (startValue + i >= 1) {
+        characterIds.add(startValue + i);
       }
     }
     characterIds.sort((a, b) => a - b);
@@ -55,19 +59,13 @@ class _CharactersWidgetState extends State<CharactersWidget> {
   void paginateCharacters(int x) {
     characterIndex = x;
     if (characterIndex == characterIds.length - 1) {
-      for (int i = 0; i < 10; i++) {
-        if (characterIds.last + i >= 1) {
-          characterIds.add(characterIds.last + i);
-        }
-      }
+      add10IdsSorted(characterIds.last + 1);
+
       setState(() {});
     } else if (characterIndex == 0 && characterIds.first != 1) {
-      for (int i = 0; i < 10; i++) {
-        if (characterIds.last + i - 10 >= 1) {
-          characterIds.add(characterIds.last - 10 + i);
-        }
-        characterIds.sort((a, b) => a - b);
-      }
+      pageController.jumpToPage(min(characterIds.first, 10));
+      add10IdsSorted(characterIds.first - 10);
+
       setState(() {});
     }
   }
@@ -78,6 +76,7 @@ class _CharactersWidgetState extends State<CharactersWidget> {
       firstCharacterMemo = widget.firstCharacterId;
 
       initCharacters();
+      pageController.jumpToPage(min(widget.firstCharacterId, 10));
     }
 
     return PageView(
