@@ -88,13 +88,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-            FlatButton(
-                onPressed: () {
-                  setState(() {
-                    firstCharacterId = 40;
-                  });
-                },
-                child: Text("Press me!"))
           ]),
         ),
       ),

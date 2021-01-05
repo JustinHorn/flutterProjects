@@ -19,7 +19,7 @@ class CharactersWidget extends StatefulWidget {
 class _CharactersWidgetState extends State<CharactersWidget> {
   int characterIndex = 0;
 
-  List<Character> characters = [];
+  List<int> characterIds = [];
 
   PageController pageController;
 
@@ -29,81 +29,46 @@ class _CharactersWidgetState extends State<CharactersWidget> {
   void initState() {
     super.initState();
     firstCharacterMemo = widget.firstCharacterId;
-    pageController = PageController(initialPage: characterIndex);
+    pageController = PageController(
+        initialPage: characterIndex,
+        viewportFraction:
+            0.99); // so the next and the previous is already being feched!
 
     initCharacters();
   }
 
   initCharacters() {
-    characters = [];
-    Future future = add10Characters(widget.firstCharacterId);
-
-    Future future2 = add10Characters(widget.firstCharacterId - 10);
-
-    Future.wait([future, future2]).then((value) {
-      int index = characters
-          .indexWhere((element) => element.id == widget.firstCharacterId);
-      pageController.jumpToPage(index);
-    });
-  }
-
-  Future<void> add10Characters(int idC1) async {
-    int firstCharacter = idC1;
-    List<Future<void>> futures = [];
+    characterIds = [];
     for (int i = 0; i < 10; i++) {
-      if (firstCharacter + i >= 1) {
-        futures.add(getSingleCharacter(firstCharacter + i));
+      if (widget.firstCharacterId + i >= 1) {
+        characterIds.add(widget.firstCharacterId + i);
       }
     }
-    await Future.wait(futures);
-    characters.sort((a, b) => a.id - b.id);
-    setState(() {
-      characters = characters;
-    });
-  }
-
-  Future<void> getSingleCharacter(int id) async {
-    print("hallo?!");
-    String query = """query {
-  character(id:${id}) {
-      id
-       name
-       image
-      status      
-      species
-      type
-      gender
-      location {
-        name 
+    for (int i = 0; i < 10; i++) {
+      if (widget.firstCharacterId - 10 + i >= 1) {
+        characterIds.add(widget.firstCharacterId - 10 + i);
       }
-      origin {
-        name
-      }
-      episode {
-        name
-      }
-    
-  }
-}""";
-
-    http.Response response = await http
-        .post("https://rickandmortyapi.com/graphql", body: {"query": query});
-
-    Character character =
-        Character.fromJSON(jsonDecode(response.body)["data"]["character"]);
-
-    characters = [...characters, character];
+    }
+    characterIds.sort((a, b) => a - b);
   }
 
   void paginateCharacters(int x) {
     characterIndex = x;
-    if (characterIndex == characters.length - 1) {
-      add10Characters(characters.last.id + 1);
-    } else if (characterIndex == 0 && characters.first.id != 1) {
-      add10Characters(characters.first.id - 10).then((void x) {
-        characterIndex += 10;
-        pageController.jumpToPage(characterIndex);
-      });
+    if (characterIndex == characterIds.length - 1) {
+      for (int i = 0; i < 10; i++) {
+        if (characterIds.last + i >= 1) {
+          characterIds.add(characterIds.last + i);
+        }
+      }
+      setState(() {});
+    } else if (characterIndex == 0 && characterIds.first != 1) {
+      for (int i = 0; i < 10; i++) {
+        if (characterIds.last + i - 10 >= 1) {
+          characterIds.add(characterIds.last - 10 + i);
+        }
+        characterIds.sort((a, b) => a - b);
+      }
+      setState(() {});
     }
   }
 
@@ -118,8 +83,13 @@ class _CharactersWidgetState extends State<CharactersWidget> {
     return PageView(
       controller: pageController,
       onPageChanged: paginateCharacters,
-      children: (characters.length > 0
-          ? characters.map((c) => CharacterWidget(character: c)).toList()
+      children: (characterIds.length > 0
+          ? characterIds
+              .map((id) => CharacterWidget(
+                    characterId: id,
+                    key: ObjectKey(id),
+                  ))
+              .toList()
           : [Text("Characters have not been loaded")]),
     );
   }
