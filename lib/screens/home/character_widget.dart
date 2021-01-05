@@ -3,18 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class CharacterWidget extends StatelessWidget {
-  CharacterWidget({
-    Key key,
-    @required this.characterId,
-  }) : super(key: key);
-
-  final int characterId;
-
-  Future character;
-
-  Future<void> getSingleCharacter() async {
-    String query = """query {
+Future<Character> getSingleCharacter(int characterId) async {
+  String query = """query {
   character(id:${characterId}) {
       id
        name
@@ -36,19 +26,29 @@ class CharacterWidget extends StatelessWidget {
   }
 }""";
 
-    http.Response response = await http
-        .post("https://rickandmortyapi.com/graphql", body: {"query": query});
+  http.Response response = await http
+      .post("https://rickandmortyapi.com/graphql", body: {"query": query});
 
-    Character character =
-        Character.fromJSON(jsonDecode(response.body)["data"]["character"]);
-    print("character ${character.name} has been fetched ");
-    return character;
-  }
+  Character character =
+      Character.fromJSON(jsonDecode(response.body)["data"]["character"]);
+  print("character ${character.name} has been fetched ");
+  return character;
+}
+
+class CharacterWidget extends StatelessWidget {
+  final int characterId;
+
+  Future character;
+  CharacterWidget({
+    Key key,
+    @required this.characterId,
+  })  : character = getSingleCharacter(characterId),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: getSingleCharacter(),
+        future: character,
         builder: (BuildContext context, snapshot) {
           if (!snapshot.hasData) {
             return Text("Characters is being fetched!");
