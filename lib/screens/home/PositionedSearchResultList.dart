@@ -1,11 +1,6 @@
+import 'package:RickAndMortyApi/animator.dart';
+import 'package:RickAndMortyApi/helpers/SearchHandler.dart';
 import 'package:flutter/material.dart';
-
-class NameId {
-  final String name;
-  final int id;
-
-  NameId(this.name, this.id);
-}
 
 class PositionedSearchResultList extends StatelessWidget {
   final List<NameId> nameIdResults;
@@ -25,16 +20,19 @@ class PositionedSearchResultList extends StatelessWidget {
         ),
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.8,
-        child: ListView(
-          children: nameIdResults
-              .map((nameId) => FlatButton(
-                  color: Color(0xffc3deca),
-                  onPressed: () {
-                    setCharacter(nameId.id);
-                  },
-                  child: Text("${nameId.id} ${nameId.name}")))
-              .toList(),
-        ),
+        child: ListView.builder(
+            itemCount: nameIdResults.length,
+            itemBuilder: (context, position) {
+              NameId nameId = nameIdResults[position];
+              return Widgetanimator(
+                child: FlatButton(
+                    color: Color(0xffc3deca),
+                    onPressed: () {
+                      setCharacter(nameId.id);
+                    },
+                    child: Text("${nameId.id} ${nameId.name}")),
+              );
+            }),
       ),
     );
   }

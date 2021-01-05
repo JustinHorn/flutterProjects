@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:RickAndMortyApi/helpers/SearchHandler.dart';
 import 'package:flutter/material.dart';
 
 import './characters.dart';
@@ -17,7 +18,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<NameId> nameIdResults = [];
+  SearchHandler searchHandler = SearchHandler();
 
   int firstCharacterId = 1;
 
@@ -29,33 +30,12 @@ class _MyHomePageState extends State<MyHomePage> {
   bool searching = false;
 
   void getCharactersByName(String name) {
-    String query = """query {
-  characters(filter:{name:"${name}"}) {
-    results {
-      id
-      name
-    }
-  }
-}""";
-
-    http.post("https://rickandmortyapi.com/graphql",
-        body: {"query": query}).then((response) {
-      dynamic characterResult = jsonDecode(response.body)["data"]["characters"];
-
-      if (characterResult != null) {
-        dynamic results = characterResult["results"];
-        List<NameId> resultList = results
-            .map((nameId) => NameId(nameId["name"], int.parse(nameId["id"])))
-            .toList()
-            .cast<NameId>();
-        setState(() {
-          nameIdResults = resultList;
-        });
-      } else {
-        setState(() {
-          nameIdResults = [];
-        });
-      }
+    searchHandler.searchCharactersByName(name).then((value) {
+      print("Hallo?");
+      print(searchHandler.results.length);
+      setState(() {
+        searchHandler = searchHandler;
+      });
     });
   }
 
@@ -67,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Stack(children: [
             Opacity(
-                opacity: 1,
+                opacity: searching ? 0.5 : 1,
                 child: CharactersWidget(
                   key: ObjectKey("characterList"),
                   firstCharacterId: firstCharacterId,
@@ -76,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PositionedSearchResultList(
                 key: ObjectKey("pSRL"),
                 setCharacter: setCharacter,
-                nameIdResults: nameIdResults,
+                nameIdResults: searchHandler.results,
               ),
           ]),
         ),
