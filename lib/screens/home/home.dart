@@ -16,6 +16,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<NameId> nameIdResults = [];
 
+  int firstCharacterId = 1;
+
   @override
   void initState() {
     super.initState();
@@ -61,7 +63,11 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Stack(children: [
-            Opacity(opacity: search ? 0.5 : 1, child: CharactersWidget()),
+            Opacity(
+                opacity: search ? 0.5 : 1,
+                child: CharactersWidget(
+                  firstCharacterId: firstCharacterId,
+                )),
             if (search)
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.1,
@@ -73,11 +79,22 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: MediaQuery.of(context).size.height * 0.8,
                   child: ListView(
                     children: nameIdResults
-                        .map((nameId) => Text("${nameId.id} ${nameId.name}"))
+                        .map((nameId) => FlatButton(
+                            onPressed: () => setState(() {
+                                  this.firstCharacterId = nameId.id;
+                                }),
+                            child: Text("${nameId.id} ${nameId.name}")))
                         .toList(),
                   ),
                 ),
-              )
+              ),
+            FlatButton(
+                onPressed: () {
+                  setState(() {
+                    firstCharacterId = 40;
+                  });
+                },
+                child: Text("Press me!"))
           ]),
         ),
       ),
@@ -102,7 +119,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   borderRadius: BorderRadius.all(Radius.circular(5))),
               child: TextField(
                 onSubmitted: (text) {
-                  print(text);
                   getCharactersByName(text);
                 },
                 style: TextStyle(color: Colors.white),

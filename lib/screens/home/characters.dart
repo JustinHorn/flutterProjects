@@ -19,16 +19,35 @@ class CharactersWidget extends StatefulWidget {
 class _CharactersWidgetState extends State<CharactersWidget> {
   int characterIndex = 0;
 
-  List<Character> singleCharacters = new List(0);
+  List<Character> characters = [];
+
+  PageController pageController;
+
+  int firstCharacterMemo; // if this variable != widget.firstCharachterId then replace characters
 
   @override
   void initState() {
     super.initState();
+    firstCharacterMemo = widget.firstCharacterId;
+    pageController = PageController(initialPage: characterIndex);
 
-    add10Characters(1);
+    initCharacters();
   }
 
-  add10Characters(int idC1) {
+  initCharacters() {
+    characters = [];
+    Future future = add10Characters(widget.firstCharacterId);
+
+    Future future2 = add10Characters(widget.firstCharacterId - 10);
+
+    Future.wait([future, future2]).then((value) {
+      int index = characters
+          .indexWhere((element) => element.id == widget.firstCharacterId);
+      pageController.jumpToPage(index);
+    });
+  }
+
+  Future<void> add10Characters(int idC1) async {
     int firstCharacter = idC1;
     List<Future<void>> futures = [];
     for (int i = 0; i < 10; i++) {
@@ -36,11 +55,10 @@ class _CharactersWidgetState extends State<CharactersWidget> {
         futures.add(getSingleCharacter(firstCharacter + i));
       }
     }
-    Future.wait(futures).then((r) {
-      singleCharacters.sort((a, b) => a.id - b.id);
-      setState(() {
-        singleCharacters = singleCharacters;
-      });
+    await Future.wait(futures);
+    characters.sort((a, b) => a.id - b.id);
+    setState(() {
+      characters = characters;
     });
   }
 
@@ -73,25 +91,35 @@ class _CharactersWidgetState extends State<CharactersWidget> {
 
     Character character =
         Character.fromJSON(jsonDecode(response.body)["data"]["character"]);
-    print("character.name:");
 
-    print(character.name);
-    singleCharacters = [...singleCharacters, character];
+    characters = [...characters, character];
+  }
+
+  void paginateCharacters(int x) {
+    characterIndex = x;
+    if (characterIndex == characters.length - 1) {
+      add10Characters(characters.last.id + 1);
+    } else if (characterIndex == 0 && characters.first.id != 1) {
+      add10Characters(characters.first.id - 10).then((void x) {
+        characterIndex += 10;
+        pageController.jumpToPage(characterIndex);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (firstCharacterMemo != widget.firstCharacterId) {
+      firstCharacterMemo = widget.firstCharacterId;
+
+      initCharacters();
+    }
+
     return PageView(
-      controller: PageController(initialPage: characterIndex),
-      onPageChanged: (x) {
-        characterIndex = x;
-        print(characterIndex);
-        if (characterIndex == singleCharacters.length - 1) {
-          add10Characters(singleCharacters.last.id + 1);
-        }
-      },
-      children: (singleCharacters.length > 0
-          ? singleCharacters.map((c) => CharacterWidget(character: c)).toList()
+      controller: pageController,
+      onPageChanged: paginateCharacters,
+      children: (characters.length > 0
+          ? characters.map((c) => CharacterWidget(character: c)).toList()
           : [Text("Characters have not been loaded")]),
     );
   }
