@@ -2,6 +2,7 @@ import 'package:brew_crew/screens/authenticate/register.dart';
 import 'package:brew_crew/screens/authenticate/sign_in.dart';
 import 'package:brew_crew/services/auth.dart';
 import 'package:brew_crew/shared/constants.dart';
+import 'package:brew_crew/shared/loading.dart';
 import 'package:flutter/material.dart';
 
 class Authenticate extends StatefulWidget {
@@ -11,6 +12,8 @@ class Authenticate extends StatefulWidget {
 
 class _AuthenticateState extends State<Authenticate> {
   bool isSignIn = true;
+
+  bool loading = false;
 
   void toggleView() {
     setState(() {
@@ -52,52 +55,60 @@ class _AuthenticateState extends State<Authenticate> {
                 icon: Icon(Icons.person),
                 label: Text(getToggleSignInButtonText()))
           ]),
-      body: Container(
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 20.0,
+      body: loading
+          ? Loading()
+          : Container(
+              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 20.0,
+                    ),
+                    TextFormField(
+                      decoration:
+                          textInputDecoration.copyWith(hintText: "Email"),
+                      validator: (val) => val.isEmpty ? 'Enter an email' : null,
+                      onChanged: (val) => email = val,
+                    ),
+                    SizedBox(
+                      height: 20.0,
+                    ),
+                    TextFormField(
+                      decoration:
+                          textInputDecoration.copyWith(hintText: "Password"),
+                      validator: (val) => val.length < 6
+                          ? 'Enter a password 6+ chars long'
+                          : null,
+                      obscureText: true,
+                      onChanged: (val) => password = val,
+                    ),
+                    SizedBox(
+                      height: 20.0,
+                    ),
+                    RaisedButton(
+                      color: Colors.pink[400],
+                      child: Text(getSubmitButtonText(),
+                          style: TextStyle(color: Colors.white)),
+                      onPressed: isSignIn ? signIn : register,
+                    ),
+                    SizedBox(height: 12.0),
+                    Text(error,
+                        style: TextStyle(color: Colors.red, fontSize: 14.0)),
+                  ],
+                ),
               ),
-              TextFormField(
-                decoration: textInputDecoration.copyWith(hintText: "Email"),
-                validator: (val) => val.isEmpty ? 'Enter an email' : null,
-                onChanged: (val) => email = val,
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              TextFormField(
-                decoration: textInputDecoration.copyWith(hintText: "Password"),
-                validator: (val) =>
-                    val.length < 6 ? 'Enter a password 6+ chars long' : null,
-                obscureText: true,
-                onChanged: (val) => password = val,
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              RaisedButton(
-                color: Colors.pink[400],
-                child: Text(getSubmitButtonText(),
-                    style: TextStyle(color: Colors.white)),
-                onPressed: isSignIn ? signIn : register,
-              ),
-              SizedBox(height: 12.0),
-              Text(error, style: TextStyle(color: Colors.red, fontSize: 14.0)),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
   register() async {
     if (_formKey.currentState.validate()) {
+      setState(() => loading = true);
       dynamic result =
           await _auth.registerWithEmailAndPassword(email, password);
+      setState(() => loading = false);
 
       if (result == null) {
         setState(() => error = 'please supply a valid email');
@@ -110,7 +121,10 @@ class _AuthenticateState extends State<Authenticate> {
 
   signIn() async {
     if (_formKey.currentState.validate()) {
+      setState(() => loading = true);
+
       dynamic result = await _auth.signInWithEmailAndPassword(email, password);
+      setState(() => loading = false);
 
       if (result == null) {
         setState(() => error = 'COULD NOT SIGN IN WITH THOSE CREDENTIALS');
