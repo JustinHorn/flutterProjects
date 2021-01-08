@@ -1,6 +1,7 @@
 import 'package:brew_crew/screens/authenticate/register.dart';
 import 'package:brew_crew/screens/authenticate/sign_in.dart';
 import 'package:brew_crew/services/auth.dart';
+import 'package:brew_crew/shared/constants.dart';
 import 'package:flutter/material.dart';
 
 class Authenticate extends StatefulWidget {
@@ -9,29 +10,32 @@ class Authenticate extends StatefulWidget {
 }
 
 class _AuthenticateState extends State<Authenticate> {
-  bool signIn = true;
+  bool isSignIn = true;
 
   void toggleView() {
     setState(() {
-      signIn = !signIn;
+      error = "";
+      isSignIn = !isSignIn;
     });
   }
 
   final AuthService _auth = AuthService();
 
+  final _formKey = GlobalKey<FormState>();
+
   String email = "";
   String password = "";
-
+  String error = "";
   String getAppBarText() {
-    return signIn ? "Sign in to Brew Crew" : "Sign up to Brew Crew";
+    return isSignIn ? "Sign in to Brew Crew" : "Sign up to Brew Crew";
   }
 
   String getSubmitButtonText() {
-    return signIn ? "Sign in" : "Register";
+    return isSignIn ? "Sign in" : "Register";
   }
 
   String getToggleSignInButtonText() {
-    return signIn ? "Register" : "Sign In";
+    return isSignIn ? "Register" : "Sign In";
   }
 
   @override
@@ -51,18 +55,24 @@ class _AuthenticateState extends State<Authenticate> {
       body: Container(
         padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
         child: Form(
+          key: _formKey,
           child: Column(
             children: [
               SizedBox(
                 height: 20.0,
               ),
               TextFormField(
+                decoration: textInputDecoration.copyWith(hintText: "Email"),
+                validator: (val) => val.isEmpty ? 'Enter an email' : null,
                 onChanged: (val) => email = val,
               ),
               SizedBox(
                 height: 20.0,
               ),
               TextFormField(
+                decoration: textInputDecoration.copyWith(hintText: "Password"),
+                validator: (val) =>
+                    val.length < 6 ? 'Enter a password 6+ chars long' : null,
                 obscureText: true,
                 onChanged: (val) => password = val,
               ),
@@ -70,17 +80,44 @@ class _AuthenticateState extends State<Authenticate> {
                 height: 20.0,
               ),
               RaisedButton(
-                  color: Colors.pink[400],
-                  child: Text(getSubmitButtonText(),
-                      style: TextStyle(color: Colors.white)),
-                  onPressed: () async {
-                    print(email);
-                    print(password);
-                  })
+                color: Colors.pink[400],
+                child: Text(getSubmitButtonText(),
+                    style: TextStyle(color: Colors.white)),
+                onPressed: isSignIn ? signIn : register,
+              ),
+              SizedBox(height: 12.0),
+              Text(error, style: TextStyle(color: Colors.red, fontSize: 14.0)),
             ],
           ),
         ),
       ),
     );
+  }
+
+  register() async {
+    if (_formKey.currentState.validate()) {
+      dynamic result =
+          await _auth.registerWithEmailAndPassword(email, password);
+
+      if (result == null) {
+        setState(() => error = 'please supply a valid email');
+      }
+
+      print(email);
+      print(password);
+    }
+  }
+
+  signIn() async {
+    if (_formKey.currentState.validate()) {
+      dynamic result = await _auth.signInWithEmailAndPassword(email, password);
+
+      if (result == null) {
+        setState(() => error = 'COULD NOT SIGN IN WITH THOSE CREDENTIALS');
+      }
+
+      print(email);
+      print(password);
+    }
   }
 }
