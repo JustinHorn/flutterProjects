@@ -15,11 +15,8 @@ class _BrewListState extends State<BrewList> {
   Widget build(BuildContext context) {
     final brews = Provider.of<List<Brew>>(context);
 
-    for (var brew in brews) {
-      print(brew.name);
-    }
     return ListView.builder(
-      itemCount: brews.length,
+      itemCount: brews != null ? brews.length : 0,
       itemBuilder: (context, index) {
         return BrewTile(brew: brews[index]);
       },
