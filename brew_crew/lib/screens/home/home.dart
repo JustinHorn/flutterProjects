@@ -24,11 +24,11 @@ class Home extends StatelessWidget {
             //
             return Container(
               padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
-              child: StreamBuilder<UserData>(
-                  stream: DatabaseService(uid: user.uid).userData,
+              child: StreamBuilder<Brew>(
+                  stream: DatabaseService(uid: user.uid).userBrew,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      return SettingsForm(userData: snapshot.data);
+                      return SettingsForm(brew: snapshot.data, uid: user.uid);
                     } else {
                       return Loading();
                     }

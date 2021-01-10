@@ -31,6 +31,13 @@ class DatabaseService {
         .toList();
   }
 
+  Brew _brewFromSnapshopt(DocumentSnapshot snapshot) {
+    return Brew(
+        name: snapshot.data()['name'] ?? '',
+        strength: snapshot.data()['strength'] ?? 0,
+        sugars: snapshot.data()['sugars'] ?? '0');
+  }
+
   Stream<List<Brew>> get brews {
     return brewCollection.snapshots().map(_brewListFromSnaphshot);
   }
@@ -39,16 +46,7 @@ class DatabaseService {
     return brewCollection.doc(uid).snapshots();
   }
 
-  Stream<UserData> get userData {
-    return userDataSnapshots.map(_userDataFromSnapShot);
-  }
-
-  UserData _userDataFromSnapShot(DocumentSnapshot snapshot) {
-    return UserData(
-      uid: uid,
-      name: snapshot.data()['name'],
-      sugars: snapshot.data()['sugars'],
-      strength: snapshot.data()['strength'],
-    );
+  Stream<Brew> get userBrew {
+    return userDataSnapshots.map(_brewFromSnapshopt);
   }
 }

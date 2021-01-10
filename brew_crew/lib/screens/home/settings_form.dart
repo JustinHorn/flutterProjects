@@ -5,9 +5,10 @@ import 'package:brew_crew/shared/constants.dart';
 import 'package:flutter/material.dart';
 
 class SettingsForm extends StatefulWidget {
-  final UserData userData;
+  final Brew brew;
+  final String uid;
 
-  const SettingsForm({Key key, this.userData}) : super(key: key);
+  const SettingsForm({Key key, this.brew, this.uid}) : super(key: key);
 
   @override
   _SettingsFormState createState() => _SettingsFormState();
@@ -25,11 +26,11 @@ class _SettingsFormState extends State<SettingsForm> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _currentName = widget.userData.name;
+    _currentName = widget.brew.name;
 
-    _currentSugars = widget.userData.sugars;
+    _currentSugars = widget.brew.sugars;
 
-    _currentStrength = widget.userData.strength;
+    _currentStrength = widget.brew.strength;
   }
 
   @override
@@ -89,7 +90,7 @@ class _SettingsFormState extends State<SettingsForm> {
             onPressed: () async {
               if (_formKey.currentState.validate()) {
                 //
-                await DatabaseService(uid: widget.userData.uid).updateUserData(
+                await DatabaseService(uid: widget.uid).updateUserData(
                     _currentSugars, _currentName, _currentStrength);
                 Navigator.pop(context);
               }

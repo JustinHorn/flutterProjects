@@ -111,15 +111,11 @@ class _AuthenticateState extends State<Authenticate> {
       setState(() => loading = true);
       dynamic result =
           await _auth.registerWithEmailAndPassword(email, password);
-      setState(() => loading = false);
 
       if (result == null) {
+        setState(() => loading = false);
+
         setState(() => error = 'please supply a valid email');
-      } else {
-        CostumUser user = result;
-        // create a new document for the user with uid
-        await DatabaseService(uid: user.uid)
-            .updateUserData('0', 'new crew member', 100);
       }
     }
   }
