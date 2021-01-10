@@ -1,8 +1,11 @@
+import 'package:brew_crew/models/User.dart';
 import 'package:brew_crew/screens/authenticate/register.dart';
 import 'package:brew_crew/screens/authenticate/sign_in.dart';
 import 'package:brew_crew/services/auth.dart';
+import 'package:brew_crew/services/database.dart';
 import 'package:brew_crew/shared/constants.dart';
 import 'package:brew_crew/shared/loading.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Authenticate extends StatefulWidget {
@@ -112,10 +115,12 @@ class _AuthenticateState extends State<Authenticate> {
 
       if (result == null) {
         setState(() => error = 'please supply a valid email');
+      } else {
+        CostumUser user = result;
+        // create a new document for the user with uid
+        await DatabaseService(uid: user.uid)
+            .updateUserData('0', 'new crew member', 100);
       }
-
-      print(email);
-      print(password);
     }
   }
 
@@ -129,9 +134,6 @@ class _AuthenticateState extends State<Authenticate> {
       if (result == null) {
         setState(() => error = 'COULD NOT SIGN IN WITH THOSE CREDENTIALS');
       }
-
-      print(email);
-      print(password);
     }
   }
 }
