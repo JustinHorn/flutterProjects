@@ -71,6 +71,12 @@ class _CharactersWidgetState extends State<CharactersWidget> {
   }
 
   @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (firstCharacterMemo != widget.firstCharacterId) {
       firstCharacterMemo = widget.firstCharacterId;

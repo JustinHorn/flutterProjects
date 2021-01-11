@@ -1,18 +1,12 @@
 import 'dart:convert';
 
+import 'package:RickAndMortyApi/models/name_id.dart';
 import 'package:http/http.dart' as http;
-
-class NameId {
-  final String name;
-  final int id;
-
-  NameId(this.name, this.id);
-}
 
 class SearchHandler {
   List<NameId> results = [];
 
-  Future<void> searchCharactersByName(String name) async {
+  Future<List<NameId>> searchCharactersByName(String name) async {
     String query = """query {
   characters(filter:{name:"${name}"}) {
     results {
@@ -37,5 +31,6 @@ class SearchHandler {
     } else {
       results = [];
     }
+    return results;
   }
 }

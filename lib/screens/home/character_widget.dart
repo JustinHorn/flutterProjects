@@ -1,7 +1,8 @@
 import 'dart:collection';
 
-import 'package:RickAndMortyApi/helpers/getSingleCharacter.dart';
+import 'package:RickAndMortyApi/service/getSingleCharacter.dart';
 import 'package:RickAndMortyApi/models/character.dart';
+import 'package:RickAndMortyApi/shared/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -22,7 +23,7 @@ class CharacterWidget extends StatelessWidget {
         future: character,
         builder: (BuildContext context, snapshot) {
           if (!snapshot.hasData) {
-            return Text("Characters is being fetched!");
+            return Loading();
           }
 
           Character character = snapshot.data;

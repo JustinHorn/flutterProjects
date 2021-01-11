@@ -1,5 +1,5 @@
 import 'package:RickAndMortyApi/animator.dart';
-import 'package:RickAndMortyApi/helpers/SearchHandler.dart';
+import 'package:RickAndMortyApi/models/name_id.dart';
 import 'package:flutter/material.dart';
 
 class PositionedSearchResultList extends StatelessWidget {

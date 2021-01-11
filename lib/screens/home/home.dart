@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:RickAndMortyApi/helpers/SearchHandler.dart';
+import 'package:RickAndMortyApi/service/SearchHandler.dart';
+import 'package:RickAndMortyApi/shared/loading.dart';
 import 'package:flutter/material.dart';
 
 import './characters.dart';
@@ -27,15 +28,13 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  bool searching = false;
+  bool searchMode = false;
+  Future searchFuture;
 
   void getCharactersByName(String name) {
-    searchHandler.searchCharactersByName(name).then((value) {
-      print("Hallo?");
-      print(searchHandler.results.length);
-      setState(() {
-        searchHandler = searchHandler;
-      });
+    setState(() {
+      searchFuture = Future.delayed(const Duration(seconds: 2),
+          () async => await searchHandler.searchCharactersByName(name));
     });
   }
 
@@ -47,24 +46,33 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Stack(children: [
             Opacity(
-                opacity: searching ? 0.5 : 1,
+                opacity: searchMode ? 0.5 : 1,
                 child: CharactersWidget(
                   key: ObjectKey("characterList"),
                   firstCharacterId: firstCharacterId,
                 )),
-            if (searching)
-              PositionedSearchResultList(
-                key: ObjectKey("pSRL"),
-                setCharacter: setCharacter,
-                nameIdResults: searchHandler.results,
-              ),
+            if ((searchFuture != null || searchHandler.results.length > 0) &&
+                searchMode)
+              FutureBuilder(
+                  future: searchFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return Loading();
+                    } else {
+                      return PositionedSearchResultList(
+                        key: ObjectKey("pSRL"),
+                        setCharacter: setCharacter,
+                        nameIdResults: snapshot.data,
+                      );
+                    }
+                  }),
           ]),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButtons(
-          searching: searching,
-          toggleSearching: toggleSearching,
+          searchMode: searchMode,
+          toggleSearchMode: toggleSearchMode,
           onSubmitted: getCharactersByName),
     );
   }
@@ -75,9 +83,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void toggleSearching() {
+  void toggleSearchMode() {
     setState(() {
-      searching = !searching;
+      searchMode = !searchMode;
     });
   }
 }
