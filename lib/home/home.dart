@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:RickAndMortyApi/home/search_text_input.dart';
 import 'package:RickAndMortyApi/service/SearchHandler.dart';
 import 'package:RickAndMortyApi/shared/loading.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: Center(
         child: Container(
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage("assets/background.jpg"),
+                  fit: BoxFit.cover)),
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Stack(children: [
             Opacity(
@@ -51,21 +56,35 @@ class _MyHomePageState extends State<MyHomePage> {
                   key: ObjectKey("characterList"),
                   firstCharacterId: firstCharacterId,
                 )),
-            if ((searchFuture != null || searchHandler.results.length > 0) &&
-                searchMode)
-              FutureBuilder(
-                  future: searchFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return Loading();
-                    } else {
-                      return PositionedSearchResultList(
-                        key: ObjectKey("pSRL"),
-                        setCharacter: setCharacter,
-                        nameIdResults: snapshot.data,
-                      );
-                    }
-                  }),
+            if (searchMode)
+              Positioned(
+                  top: MediaQuery.of(context).size.height * 0.1,
+                  child: Container(
+                    alignment: Alignment.center,
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SearchTextInput(onSubmitted: getCharactersByName),
+                          if (searchFuture != null ||
+                              searchHandler.results.length > 0)
+                            FutureBuilder(
+                                future: searchFuture,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState !=
+                                      ConnectionState.done) {
+                                    return Loading();
+                                  } else {
+                                    return PositionedSearchResultList(
+                                      key: ObjectKey("pSRL"),
+                                      setCharacter: setCharacter,
+                                      nameIdResults: snapshot.data,
+                                    );
+                                  }
+                                }),
+                        ]),
+                  )),
           ]),
         ),
       ),

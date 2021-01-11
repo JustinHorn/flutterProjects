@@ -1,4 +1,5 @@
 import 'package:RickAndMortyApi/animator.dart';
+import 'package:RickAndMortyApi/home/search_text_input.dart';
 import 'package:flutter/material.dart';
 
 class FloatingActionButtons extends StatelessWidget {
@@ -18,20 +19,6 @@ class FloatingActionButtons extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(""),
-          if (searchMode)
-            Widgetanimator(
-              child: Container(
-                padding: EdgeInsets.all(5),
-                width: 200.0,
-                decoration: BoxDecoration(
-                    color: Colors.purple,
-                    borderRadius: BorderRadius.all(Radius.circular(5))),
-                child: TextField(
-                  onSubmitted: onSubmitted,
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
           FloatingActionButton(
             onPressed: toggleSearchMode,
             child: Icon(Icons.search),

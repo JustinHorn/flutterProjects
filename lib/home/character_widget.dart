@@ -38,7 +38,10 @@ class CharacterWidget extends StatelessWidget {
                       '${character.name}',
                       style: Theme.of(context).textTheme.headline3,
                     ),
-                    Image.network(character.image),
+                    Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 10)),
+                        child: Image.network(character.image)),
                     Text(
                       '${character.status}, ${character.species}',
                       style: Theme.of(context).textTheme.headline6,
