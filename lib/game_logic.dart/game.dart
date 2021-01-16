@@ -9,6 +9,7 @@ class Game {
   Function onGameMapChange;
 
   bool gameOver = false;
+  bool spawnElements = false; // false for testing puporses
 
   Random rng = Random();
 
@@ -18,21 +19,22 @@ class Game {
         (index) => Field(
               index,
             ));
+    map[0].tile = Tile(2, lastX: 0, lastY: 0);
+    map[1].tile = Tile(4, lastX: 1, lastY: 0);
+    map[4].tile = Tile(8, lastX: 0, lastY: 1);
+  }
 
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        if (i % 2 == 0) map[i * 4 + j].tile = Tile(j % 2 == 0 ? 2 : 4);
-        if (i % 2 == 1) map[i * 4 + j].tile = Tile(j % 2 == 0 ? 4 : 2);
-      }
-    }
-    map[15].tile = null;
-
-    print(canMove());
+  List<Tile> getListOfTiles() {
+    return map
+        .where((element) => element.hasTile())
+        .map((e) => e.tile)
+        .toList()
+        .cast<Tile>();
   }
 
   spawnElement() {
     List<int> emptyIndexes = map
-        .where((field) => !field.hasElement())
+        .where((field) => !field.hasTile())
         .map((field) => field.postion)
         .toList();
 
@@ -146,9 +148,9 @@ class Game {
   }
 
   bool canMoveElements(int index, Function getNext, Function inBounds) {
-    if (map[index].hasElement()) {
+    if (map[index].hasTile()) {
       int next = getNext(index);
-      if (!map[next].hasElement()) {
+      if (!map[next].hasTile()) {
         return true;
       } else if (map[next].tile == map[index].tile) {
         return true;
@@ -158,17 +160,17 @@ class Game {
   }
 
   void moveElements(int index, Function getNext, Function inBounds) {
-    if (map[index].hasElement()) {
+    if (map[index].hasTile()) {
       int next = getNext(index);
-      if (!map[next].hasElement()) {
+      if (!map[next].hasTile()) {
         int veryNext = getNext(next);
-        while (inBounds(veryNext) && !map[veryNext].hasElement()) {
+        while (inBounds(veryNext) && !map[veryNext].hasTile()) {
           next = veryNext;
           veryNext = getNext(veryNext);
         }
 
         if (inBounds(veryNext) &&
-            map[veryNext].hasElement() &&
+            map[veryNext].hasTile() &&
             map[index].tile == map[veryNext].tile &&
             !map[veryNext].tile.hasJustBeenMerged) {
           mergeElements(index, veryNext);
@@ -195,7 +197,7 @@ class Game {
   }
 
   moveElement(int current, int next) {
-    if (!map[current].hasElement()) {
+    if (!map[current].hasTile()) {
       throw new Exception(
           "Expected to move an element, but no element was there");
     }
@@ -206,9 +208,9 @@ class Game {
 
   void prepareNextRound() {
     for (int i = 0; i < map.length; i++) {
-      if (map[i].hasElement()) map[i].tile.hasJustBeenMerged = false;
+      if (map[i].hasTile()) map[i].tile.hasJustBeenMerged = false;
     }
-    spawnElement();
+    if (spawnElements) spawnElement();
     gameOver = !canMove();
     onGameMapChange();
   }

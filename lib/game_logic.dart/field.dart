@@ -6,7 +6,7 @@ class Field {
 
   Field(this.postion, {this.tile});
 
-  bool hasElement() {
+  bool hasTile() {
     return tile != null;
   }
 }
