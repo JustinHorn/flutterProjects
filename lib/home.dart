@@ -37,13 +37,7 @@ class _HomePageState extends State<HomePage>
             int index = tileAnimations
                 .indexWhere((element) => element.id == tiles[i].id);
 
-            tileAnimations[index].x =
-                AlwaysStoppedAnimation(tiles[i].lastX.toDouble());
-
-            tileAnimations[index].y =
-                AlwaysStoppedAnimation(tiles[i].lastY.toDouble());
-
-            tileAnimations[index].size = AlwaysStoppedAnimation(0.9);
+            tileAnimations[index].setStopped(tiles[i]);
           }
         });
       }
@@ -53,12 +47,7 @@ class _HomePageState extends State<HomePage>
     List<Tile> tiles = game.getListOfTiles();
     for (int i = 0; i < tiles.length; i++) {
       if (tiles[i].didJustSpawn) {
-        tileAnimations.add(TileAnimation(
-          tiles[i].id,
-          AlwaysStoppedAnimation(tiles[i].lastX.toDouble()),
-          AlwaysStoppedAnimation(tiles[i].lastY.toDouble()),
-          tiles[i].value,
-        ));
+        tileAnimations.add(TileAnimation(tiles[i]));
         tileAnimations.last.bounce(controller);
       }
     }
@@ -70,46 +59,51 @@ class _HomePageState extends State<HomePage>
 
   void onGameChanged() {
     List<Tile> tiles = game.getListOfTiles();
+    List<Tile> previousTiles = game.getListOfPreviousTiles();
+
+    Function tileWithAnimationId =
+        (animation) => (tile) => tile.id == animation.id;
+
     tileAnimations = tileAnimations
-        .where((element) => tiles.any((tile) => tile.id == element.id))
+        .where((element) => tiles.any(tileWithAnimationId(element)))
         .toList();
 
     for (int i = 0; i < tiles.length; i++) {
+      Tile currentTile = tiles[i];
       int newPosition = game.map.indexWhere(
-          (field) => field.hasTile() && field.tile.id == tiles[i].id);
+          (field) => field.hasTile() && field.tile.id == currentTile.id);
       if (newPosition == -1) {
         throw new Exception("Tile gone missing!");
       }
       int newX = newPosition % 4;
       int newY = (newPosition / 4).floor();
 
-      if (tiles[i].didJustSpawn || tiles[i].hasJustBeenMerged) {
-        tiles[i].lastX = newX;
-        tiles[i].lastY = newY;
-        tileAnimations.add(TileAnimation(
-          tiles[i].id,
-          Tween<double>(begin: tiles[i].lastX.toDouble(), end: newX.toDouble())
-              .animate(controller),
-          Tween<double>(begin: tiles[i].lastY.toDouble(), end: newY.toDouble())
-              .animate(controller),
-          tiles[i].value,
-        ));
+      if (currentTile.didJustSpawn || currentTile.hasJustBeenMerged) {
+        currentTile.lastX = newX;
+        currentTile.lastY = newY;
 
+        if (currentTile.hasJustBeenMerged) {
+          print(previousTiles.length);
+          Tile parentA = previousTiles
+              .firstWhere((element) => element.id == currentTile.parents[0]);
+          Tile parentB = previousTiles
+              .firstWhere((element) => element.id == currentTile.parents[1]);
+
+          tileAnimations.add(TileAnimation(parentA));
+          tileAnimations.last.setAnimation(parentA, newX, newY, controller);
+          tileAnimations.add(TileAnimation(parentB));
+          tileAnimations.last.setAnimation(parentB, newX, newY, controller);
+        }
+        tileAnimations.add(TileAnimation(currentTile));
         tileAnimations.last.bounce(controller);
       } else {
-        TileAnimation animation =
-            tileAnimations.firstWhere((element) => element.id == tiles[i].id);
+        TileAnimation animation = tileAnimations
+            .firstWhere((element) => element.id == currentTile.id);
 
-        animation.x = Tween<double>(
-                begin: tiles[i].lastX.toDouble(), end: newX.toDouble())
-            .animate(controller);
+        animation.setAnimation(currentTile, newX, newY, controller);
 
-        animation.y = Tween<double>(
-                begin: tiles[i].lastY.toDouble(), end: newY.toDouble())
-            .animate(controller);
-
-        tiles[i].lastX = newX;
-        tiles[i].lastY = newY;
+        currentTile.lastX = newX;
+        currentTile.lastY = newY;
       }
     }
 

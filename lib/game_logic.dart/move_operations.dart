@@ -5,10 +5,11 @@ import 'field.dart';
 class MoveOperator {
   List<Field> map;
 
-  MoveOperator(List<Field> map) {
+  MoveOperator(List<Field> oldMap) {
     this.map = List.empty(growable: true);
-    map.forEach((element) {
-      this.map.add(element);
+    int i = 0;
+    oldMap.forEach((element) {
+      this.map.add(Field(i++, tile: element.tile));
     });
   }
 

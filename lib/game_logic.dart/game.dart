@@ -22,6 +22,7 @@ class Game {
               index,
             ));
     map[0].tile = Tile(2, lastX: 0, lastY: 0);
+    map[3].tile = Tile(2, lastX: 3, lastY: 0);
   }
 
   List<Tile> getListOfTiles() {
@@ -48,7 +49,7 @@ class Game {
 
     if (emptyIndexes.length > 0) {
       int position = emptyIndexes[rng.nextInt(emptyIndexes.length)];
-      map[position].tile = Tile(2);
+      map[position].tile = Tile(rng.nextInt(4) == 0 ? 4 : 2);
     }
   }
 
