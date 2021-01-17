@@ -87,27 +87,8 @@ class _HomePageState extends State<HomePage>
               ),
             )).cast<Positioned>();
 
-    List<AnimatedBuilder> animatedBuilders = tileAnimationController
-        .tileAnimations
-        .map((animation) => AnimatedBuilder(
-              animation: controller,
-              builder: (context, child) {
-                double left =
-                    calcPositionOfTile(animation.x.value.floor(), fieldSize);
-
-                double top =
-                    calcPositionOfTile(animation.y.value.floor(), fieldSize);
-
-                return TileWidget(
-                  left: left - fieldSize * (animation.size.value - 0.9) / 2,
-                  top: top - fieldSize * (animation.size.value - 0.9) / 2,
-                  size: fieldSize * animation.size.value,
-                  value: animation.value,
-                );
-              },
-            ))
-        .toList()
-        .cast<AnimatedBuilder>();
+    List<AnimatedBuilder> animatedBuilders =
+        tileAnimationController.getAnimatedTileBuilders(fieldSize, distance);
 
     return Scaffold(
       body: Center(

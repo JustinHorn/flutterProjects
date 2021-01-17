@@ -1,7 +1,9 @@
 import 'package:flutter/animation.dart';
+import 'package:flutter/material.dart';
 import 'package:twentyfourtyeight/game_logic.dart/game.dart';
 import 'package:twentyfourtyeight/game_logic.dart/tile.dart';
 import 'package:twentyfourtyeight/widgets/tile_animations.dart';
+import 'package:twentyfourtyeight/widgets/tile_widget.dart';
 
 import 'functions.dart';
 
@@ -75,5 +77,32 @@ class TileAnimationController {
 
     tileAnimations.add(TileAnimation.move(parentA, newXY, controller));
     tileAnimations.add(TileAnimation.move(parentB, newXY, controller));
+  }
+
+  List<Widget> getAnimatedTileBuilders(fieldSize, distance) {
+    return tileAnimations
+        .map((animation) => AnimatedBuilder(
+              animation: controller,
+              builder: (context, child) {
+                double left = calcPositionOfTile(
+                    animation.x.value.floor(), fieldSize, distance);
+
+                double top = calcPositionOfTile(
+                    animation.y.value.floor(), fieldSize, distance);
+
+                return TileWidget(
+                  left: left - fieldSize * (animation.size.value - 0.9) / 2,
+                  top: top - fieldSize * (animation.size.value - 0.9) / 2,
+                  size: fieldSize * animation.size.value,
+                  value: animation.value,
+                );
+              },
+            ))
+        .toList()
+        .cast<AnimatedBuilder>();
+  }
+
+  double calcPositionOfTile(int position, double size, distance) {
+    return position.toDouble() * (size + distance) + distance + size * 0.05;
   }
 }
