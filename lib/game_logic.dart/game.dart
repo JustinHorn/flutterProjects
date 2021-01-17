@@ -15,14 +15,14 @@ class Game {
 
   Random rng = Random();
 
-  Game(this.onGameMapChange) {
+  Game() {
     map = List<Field>.generate(
         16,
         (index) => Field(
               index,
             ));
-    map[0].tile = Tile(2, lastX: 0, lastY: 0);
-    map[3].tile = Tile(2, lastX: 3, lastY: 0);
+    map[0].tile = Tile(2);
+    map[3].tile = Tile(2);
   }
 
   List<Tile> getListOfTiles() {

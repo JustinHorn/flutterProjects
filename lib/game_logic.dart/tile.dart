@@ -8,7 +8,6 @@ class Tile {
 
   int get id => _id;
 
-  List<int> lastXY = [null, null];
   bool didJustSpawn;
 
   List<int> parents;
@@ -22,15 +21,12 @@ class Tile {
   Tile(
     this.value, {
     this.hasJustBeenMerged = false,
-    lastX,
-    lastY,
     this.didJustSpawn = true,
     this.parents,
   }) {
     if (parents == null) {
       parents = [null, null];
     }
-    lastXY = [lastX, lastY];
 
     this._id = startId++;
   }

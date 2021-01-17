@@ -3,11 +3,11 @@ import 'package:twentyfourtyeight/game_logic.dart/game.dart';
 import 'package:twentyfourtyeight/game_logic.dart/tile.dart';
 
 import 'package:twentyfourtyeight/helper/swipedetector.dart';
-import 'package:twentyfourtyeight/helper/tile_animation_controller.dart';
-import 'package:twentyfourtyeight/widgets/tile_animations.dart';
+import 'package:twentyfourtyeight/widgets/gamemapbuilder.dart';
 import 'package:twentyfourtyeight/widgets/tile_widget.dart';
 
-import 'helper/functions.dart';
+import 'animations/tile_animation_controller.dart';
+import 'animations/tile_animations.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -22,14 +22,14 @@ class _HomePageState extends State<HomePage>
 
   TileAnimationController tileAnimationController;
 
-  final double distance = 7;
-
   @override
   void initState() {
     controller =
         AnimationController(duration: Duration(milliseconds: 100), vsync: this);
 
-    tileAnimationController = TileAnimationController(controller);
+    game = Game();
+
+    tileAnimationController = TileAnimationController(controller, game);
 
     controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -44,9 +44,8 @@ class _HomePageState extends State<HomePage>
       }
     });
 
-    game = Game(onGameChanged);
-    List<Tile> tiles = game.getListOfTiles();
-    tileAnimationController.initTiles(tiles);
+    game.onGameMapChange = onGameChanged;
+    tileAnimationController.loadFirstTiles();
 
     super.initState();
 
@@ -54,42 +53,14 @@ class _HomePageState extends State<HomePage>
   }
 
   void onGameChanged() {
-    List<Tile> tiles = game.getListOfTiles();
-    List<Tile> previousTiles = game.getListOfPreviousTiles();
-
-    tileAnimationController.animate(tiles, previousTiles, game);
+    tileAnimationController.animate();
     setState(() {
       controller.forward(from: 0);
     });
   }
 
-  double calcPositionOfTile(int position, double size) {
-    return position.toDouble() * (size + distance) + distance + size * 0.05;
-  }
-
   @override
   Widget build(BuildContext context) {
-    double totalWidth = MediaQuery.of(context).size.width - 32;
-
-    double fieldSize = (totalWidth - distance) / 4 - distance;
-    List<Positioned> fields = List<Positioned>.generate(
-        16,
-        (index) => Positioned(
-              top: (index / 4).floor() * (fieldSize + distance) + distance,
-              left: (index % 4) * (fieldSize + distance) + distance,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(5.0),
-                ),
-                width: fieldSize,
-                height: fieldSize,
-              ),
-            )).cast<Positioned>();
-
-    List<AnimatedBuilder> animatedBuilders =
-        tileAnimationController.getAnimatedTileBuilders(fieldSize, distance);
-
     return Scaffold(
       body: Center(
         child: Container(
@@ -102,13 +73,13 @@ class _HomePageState extends State<HomePage>
               width: double.infinity,
               child: Center(
                   child: Container(
-                height: MediaQuery.of(context).size.width - 32,
-                width: MediaQuery.of(context).size.width - 32,
-                color: Colors.grey,
-                child: Stack(
-                  children: [...fields, ...animatedBuilders],
-                ),
-              )),
+                      height: MediaQuery.of(context).size.width - 32,
+                      width: MediaQuery.of(context).size.width - 32,
+                      color: Colors.grey,
+                      child: GameMapBuilder(
+                        tileAnimations: tileAnimationController.tileAnimations,
+                        controller: controller,
+                      ))),
             ),
             onSwipeUp: () {
               game.moveUp();
