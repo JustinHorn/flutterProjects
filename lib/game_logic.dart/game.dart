@@ -9,7 +9,7 @@ class Game {
   Function onGameMapChange;
 
   bool gameOver = false;
-  bool spawnElements = false; // false for testing puporses
+  bool spawnElements = true; // false for testing puporses
 
   Random rng = Random();
 
@@ -20,8 +20,6 @@ class Game {
               index,
             ));
     map[0].tile = Tile(2, lastX: 0, lastY: 0);
-    map[1].tile = Tile(4, lastX: 1, lastY: 0);
-    map[4].tile = Tile(8, lastX: 0, lastY: 1);
   }
 
   List<Tile> getListOfTiles() {
@@ -101,6 +99,8 @@ class Game {
   }
 
   moveLeft() {
+    beforeRound();
+
     for (int i = 0; i < 4; i++) {
       for (int j = 1; j < 4; j++) {
         int index = i * 4 + j;
@@ -115,6 +115,8 @@ class Game {
   }
 
   moveRight() {
+    beforeRound();
+
     for (int i = 0; i < 4; i++) {
       for (int j = 2; j >= 0; j--) {
         int index = i * 4 + j;
@@ -128,6 +130,8 @@ class Game {
   }
 
   moveUp() {
+    beforeRound();
+
     for (int i = 4; i < map.length; i++) {
       int index = i;
       Function getNext = (int previous) => previous - 4;
@@ -138,6 +142,7 @@ class Game {
   }
 
   moveDown() {
+    beforeRound();
     for (int i = map.length - 5; i >= 0; i--) {
       int index = i;
       Function getNext = (int previous) => previous + 4;
@@ -207,11 +212,17 @@ class Game {
   }
 
   void prepareNextRound() {
-    for (int i = 0; i < map.length; i++) {
-      if (map[i].hasTile()) map[i].tile.hasJustBeenMerged = false;
-    }
     if (spawnElements) spawnElement();
     gameOver = !canMove();
     onGameMapChange();
+  }
+
+  void beforeRound() {
+    for (int i = 0; i < map.length; i++) {
+      if (map[i].hasTile()) {
+        map[i].tile.hasJustBeenMerged = false;
+        map[i].tile.didJustSpawn = false;
+      }
+    }
   }
 }

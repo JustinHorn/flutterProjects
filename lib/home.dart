@@ -33,6 +33,8 @@ class _HomePageState extends State<HomePage>
 
             tiles[i].tileAnimation.y =
                 AlwaysStoppedAnimation(tiles[i].lastY.toDouble());
+
+            tiles[i].size = AlwaysStoppedAnimation(0.9);
           }
         });
       }
@@ -41,6 +43,9 @@ class _HomePageState extends State<HomePage>
     game = Game(onGameChanged);
     List<Tile> tiles = game.getListOfTiles();
     for (int i = 0; i < tiles.length; i++) {
+      if (tiles[i].didJustSpawn) {
+        tiles[i].bounce(controller);
+      }
       tiles[i].tileAnimation.x =
           AlwaysStoppedAnimation(tiles[i].lastX.toDouble());
 
@@ -65,6 +70,12 @@ class _HomePageState extends State<HomePage>
       int newX = newPosition % 4;
       int newY = (newPosition / 4).floor();
 
+      if (tiles[i].didJustSpawn || tiles[i].hasJustBeenMerged) {
+        tiles[i].bounce(controller);
+        tiles[i].lastX = newX;
+        tiles[i].lastY = newY;
+      }
+
       tiles[i].tileAnimation.x =
           Tween<double>(begin: tiles[i].lastX.toDouble(), end: newX.toDouble())
               .animate(controller);
@@ -81,23 +92,27 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+  double calcPositionOfTile(int position, double size) {
+    return position.toDouble() * (size + distance) + distance + size * 0.05;
+  }
+
   @override
   Widget build(BuildContext context) {
     double totalWidth = MediaQuery.of(context).size.width - 32;
 
-    double size = (totalWidth - distance) / 4 - distance;
+    double fieldSize = (totalWidth - distance) / 4 - distance;
     List<Positioned> fields = List<Positioned>.generate(
         16,
         (index) => Positioned(
-              top: (index / 4).floor() * (size + distance) + distance,
-              left: (index % 4) * (size + distance) + distance,
+              top: (index / 4).floor() * (fieldSize + distance) + distance,
+              left: (index % 4) * (fieldSize + distance) + distance,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(5.0),
                 ),
-                width: size,
-                height: size,
+                width: fieldSize,
+                height: fieldSize,
               ),
             )).cast<Positioned>();
 
@@ -107,23 +122,17 @@ class _HomePageState extends State<HomePage>
         .map((e) => AnimatedBuilder(
               animation: controller,
               builder: (context, child) {
-                return Positioned(
-                  left: e.tileAnimation.x.value.floor().toDouble() *
-                          (size + distance) +
-                      distance +
-                      size * 0.05,
-                  top: e.tileAnimation.y.value.floor().toDouble() *
-                          (size + distance) +
-                      distance +
-                      size * 0.05,
-                  child: Container(
-                    width: size * 0.9,
-                    height: size * 0.9,
-                    color: Colors.grey[400],
-                    child: Center(
-                      child: Text(e.value.toString()),
-                    ),
-                  ),
+                double left = calcPositionOfTile(
+                    e.tileAnimation.x.value.floor(), fieldSize);
+
+                double top = calcPositionOfTile(
+                    e.tileAnimation.y.value.floor(), fieldSize);
+
+                return TileWidget(
+                  left: left - fieldSize * (e.size.value - 0.9) / 2,
+                  top: top - fieldSize * (e.size.value - 0.9) / 2,
+                  size: fieldSize * e.size.value,
+                  value: e.value,
                 );
               },
             ))
@@ -172,6 +181,40 @@ class _HomePageState extends State<HomePage>
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+}
+
+class TileWidget extends StatelessWidget {
+  const TileWidget({
+    Key key,
+    @required this.left,
+    @required this.top,
+    @required this.value,
+    @required this.size,
+  }) : super(key: key);
+
+  final double left;
+  final double top;
+  final double size;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: left,
+      top: top,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.grey[400],
+          borderRadius: BorderRadius.circular(5.0),
+        ),
+        child: Center(
+          child: Text(value.toString()),
+        ),
+      ),
+    );
   }
 }
 
