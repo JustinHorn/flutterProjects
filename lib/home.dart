@@ -3,7 +3,11 @@ import 'package:twentyfourtyeight/game_logic.dart/game.dart';
 import 'package:twentyfourtyeight/game_logic.dart/tile.dart';
 
 import 'package:twentyfourtyeight/helper/swipedetector.dart';
+import 'package:twentyfourtyeight/helper/tile_animation_controller.dart';
+import 'package:twentyfourtyeight/widgets/tile_animations.dart';
 import 'package:twentyfourtyeight/widgets/tile_widget.dart';
+
+import 'helper/functions.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,9 +18,9 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   Game game;
 
-  List<TileAnimation> tileAnimations = List.empty(growable: true);
-
   AnimationController controller;
+
+  TileAnimationController tileAnimationController;
 
   final double distance = 7;
 
@@ -25,32 +29,24 @@ class _HomePageState extends State<HomePage>
     controller =
         AnimationController(duration: Duration(milliseconds: 100), vsync: this);
 
+    tileAnimationController = TileAnimationController(controller);
+
     controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
           List<Tile> tiles = game.getListOfTiles();
-          tileAnimations = tileAnimations
-              .where((element) => tiles.any((tile) => tile.id == element.id))
-              .toList();
 
-          for (int i = 0; i < tiles.length; i++) {
-            int index = tileAnimations
-                .indexWhere((element) => element.id == tiles[i].id);
+          tileAnimationController
+              .filterAnimationsByIds(tiles.map((t) => t.id).cast<int>());
 
-            tileAnimations[index].setStopped(tiles[i]);
-          }
+          tileAnimationController.setAnimationsToStop(tiles);
         });
       }
     });
 
     game = Game(onGameChanged);
     List<Tile> tiles = game.getListOfTiles();
-    for (int i = 0; i < tiles.length; i++) {
-      if (tiles[i].didJustSpawn) {
-        tileAnimations.add(TileAnimation(tiles[i]));
-        tileAnimations.last.bounce(controller);
-      }
-    }
+    tileAnimationController.initTiles(tiles);
 
     super.initState();
 
@@ -61,52 +57,7 @@ class _HomePageState extends State<HomePage>
     List<Tile> tiles = game.getListOfTiles();
     List<Tile> previousTiles = game.getListOfPreviousTiles();
 
-    Function tileWithAnimationId =
-        (animation) => (tile) => tile.id == animation.id;
-
-    tileAnimations = tileAnimations
-        .where((element) => tiles.any(tileWithAnimationId(element)))
-        .toList();
-
-    for (int i = 0; i < tiles.length; i++) {
-      Tile currentTile = tiles[i];
-      int newPosition = game.map.indexWhere(
-          (field) => field.hasTile() && field.tile.id == currentTile.id);
-      if (newPosition == -1) {
-        throw new Exception("Tile gone missing!");
-      }
-      int newX = newPosition % 4;
-      int newY = (newPosition / 4).floor();
-
-      if (currentTile.didJustSpawn || currentTile.hasJustBeenMerged) {
-        currentTile.lastX = newX;
-        currentTile.lastY = newY;
-
-        if (currentTile.hasJustBeenMerged) {
-          print(previousTiles.length);
-          Tile parentA = previousTiles
-              .firstWhere((element) => element.id == currentTile.parents[0]);
-          Tile parentB = previousTiles
-              .firstWhere((element) => element.id == currentTile.parents[1]);
-
-          tileAnimations.add(TileAnimation(parentA));
-          tileAnimations.last.setAnimation(parentA, newX, newY, controller);
-          tileAnimations.add(TileAnimation(parentB));
-          tileAnimations.last.setAnimation(parentB, newX, newY, controller);
-        }
-        tileAnimations.add(TileAnimation(currentTile));
-        tileAnimations.last.bounce(controller);
-      } else {
-        TileAnimation animation = tileAnimations
-            .firstWhere((element) => element.id == currentTile.id);
-
-        animation.setAnimation(currentTile, newX, newY, controller);
-
-        currentTile.lastX = newX;
-        currentTile.lastY = newY;
-      }
-    }
-
+    tileAnimationController.animate(tiles, previousTiles, game);
     setState(() {
       controller.forward(from: 0);
     });
@@ -136,7 +87,8 @@ class _HomePageState extends State<HomePage>
               ),
             )).cast<Positioned>();
 
-    List<AnimatedBuilder> animatedBuilders = tileAnimations
+    List<AnimatedBuilder> animatedBuilders = tileAnimationController
+        .tileAnimations
         .map((animation) => AnimatedBuilder(
               animation: controller,
               builder: (context, child) {

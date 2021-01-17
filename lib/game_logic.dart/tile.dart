@@ -2,53 +2,13 @@ import 'package:flutter/material.dart';
 
 int startId = 0;
 
-class TileAnimation {
-  int id = 0;
-  Animation<double> x;
-  Animation<double> y;
-  Animation<double> size;
-
-  int value;
-
-  void bounce(Animation<double> parent) {
-    size = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0, end: 1), weight: 0.8),
-      TweenSequenceItem(tween: Tween(begin: 1, end: 0.9), weight: 0.9),
-    ]).animate(CurvedAnimation(parent: parent, curve: Interval(0.5, 1.0)));
-  }
-
-  TileAnimation(
-    Tile tile,
-  ) {
-    this.id = tile.id;
-    setStopped(tile);
-    this.value = tile.value;
-  }
-
-  void setStopped(
-    Tile tile,
-  ) {
-    this.x = AlwaysStoppedAnimation(tile.lastX.toDouble());
-    this.y = AlwaysStoppedAnimation(tile.lastY.toDouble());
-    this.size = AlwaysStoppedAnimation(0.9);
-  }
-
-  void setAnimation(Tile tile, newX, newY, controller) {
-    this.x = Tween<double>(begin: tile.lastX.toDouble(), end: newX.toDouble())
-        .animate(controller);
-    this.y = Tween<double>(begin: tile.lastY.toDouble(), end: newY.toDouble())
-        .animate(controller);
-  }
-}
-
 class Tile {
   final int value;
   int _id;
 
   int get id => _id;
 
-  int lastX;
-  int lastY;
+  List<int> lastXY = [null, null];
   bool didJustSpawn;
 
   List<int> parents;
@@ -62,14 +22,16 @@ class Tile {
   Tile(
     this.value, {
     this.hasJustBeenMerged = false,
-    this.lastX,
-    this.lastY,
+    lastX,
+    lastY,
     this.didJustSpawn = true,
     this.parents,
   }) {
     if (parents == null) {
       parents = [null, null];
     }
+    lastXY = [lastX, lastY];
+
     this._id = startId++;
   }
 
