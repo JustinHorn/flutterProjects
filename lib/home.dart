@@ -3,7 +3,7 @@ import 'package:twentyfourtyeight/game_logic.dart/game.dart';
 import 'package:twentyfourtyeight/game_logic.dart/tile.dart';
 
 import 'package:twentyfourtyeight/helper/swipedetector.dart';
-import 'package:twentyfourtyeight/widgets/field_widget.dart';
+import 'package:twentyfourtyeight/widgets/tile_widget.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -13,6 +13,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   Game game;
+
+  List<TileAnimation> tileAnimations = List.empty(growable: true);
 
   AnimationController controller;
 
@@ -27,14 +29,21 @@ class _HomePageState extends State<HomePage>
       if (status == AnimationStatus.completed) {
         setState(() {
           List<Tile> tiles = game.getListOfTiles();
+          tileAnimations = tileAnimations
+              .where((element) => tiles.any((tile) => tile.id == element.id))
+              .toList();
+
           for (int i = 0; i < tiles.length; i++) {
-            tiles[i].tileAnimation.x =
+            int index = tileAnimations
+                .indexWhere((element) => element.id == tiles[i].id);
+
+            tileAnimations[index].x =
                 AlwaysStoppedAnimation(tiles[i].lastX.toDouble());
 
-            tiles[i].tileAnimation.y =
+            tileAnimations[index].y =
                 AlwaysStoppedAnimation(tiles[i].lastY.toDouble());
 
-            tiles[i].size = AlwaysStoppedAnimation(0.9);
+            tileAnimations[index].size = AlwaysStoppedAnimation(0.9);
           }
         });
       }
@@ -44,13 +53,14 @@ class _HomePageState extends State<HomePage>
     List<Tile> tiles = game.getListOfTiles();
     for (int i = 0; i < tiles.length; i++) {
       if (tiles[i].didJustSpawn) {
-        tiles[i].bounce(controller);
+        tileAnimations.add(TileAnimation(
+          tiles[i].id,
+          AlwaysStoppedAnimation(tiles[i].lastX.toDouble()),
+          AlwaysStoppedAnimation(tiles[i].lastY.toDouble()),
+          tiles[i].value,
+        ));
+        tileAnimations.last.bounce(controller);
       }
-      tiles[i].tileAnimation.x =
-          AlwaysStoppedAnimation(tiles[i].lastX.toDouble());
-
-      tiles[i].tileAnimation.y =
-          AlwaysStoppedAnimation(tiles[i].lastY.toDouble());
     }
 
     super.initState();
@@ -60,6 +70,9 @@ class _HomePageState extends State<HomePage>
 
   void onGameChanged() {
     List<Tile> tiles = game.getListOfTiles();
+    tileAnimations = tileAnimations
+        .where((element) => tiles.any((tile) => tile.id == element.id))
+        .toList();
 
     for (int i = 0; i < tiles.length; i++) {
       int newPosition = game.map.indexWhere(
@@ -71,20 +84,33 @@ class _HomePageState extends State<HomePage>
       int newY = (newPosition / 4).floor();
 
       if (tiles[i].didJustSpawn || tiles[i].hasJustBeenMerged) {
-        tiles[i].bounce(controller);
+        tiles[i].lastX = newX;
+        tiles[i].lastY = newY;
+        tileAnimations.add(TileAnimation(
+          tiles[i].id,
+          Tween<double>(begin: tiles[i].lastX.toDouble(), end: newX.toDouble())
+              .animate(controller),
+          Tween<double>(begin: tiles[i].lastY.toDouble(), end: newY.toDouble())
+              .animate(controller),
+          tiles[i].value,
+        ));
+
+        tileAnimations.last.bounce(controller);
+      } else {
+        TileAnimation animation =
+            tileAnimations.firstWhere((element) => element.id == tiles[i].id);
+
+        animation.x = Tween<double>(
+                begin: tiles[i].lastX.toDouble(), end: newX.toDouble())
+            .animate(controller);
+
+        animation.y = Tween<double>(
+                begin: tiles[i].lastY.toDouble(), end: newY.toDouble())
+            .animate(controller);
+
         tiles[i].lastX = newX;
         tiles[i].lastY = newY;
       }
-
-      tiles[i].tileAnimation.x =
-          Tween<double>(begin: tiles[i].lastX.toDouble(), end: newX.toDouble())
-              .animate(controller);
-      tiles[i].tileAnimation.y =
-          Tween<double>(begin: tiles[i].lastY.toDouble(), end: newY.toDouble())
-              .animate(controller);
-
-      tiles[i].lastX = newX;
-      tiles[i].lastY = newY;
     }
 
     setState(() {
@@ -116,23 +142,21 @@ class _HomePageState extends State<HomePage>
               ),
             )).cast<Positioned>();
 
-    List<Tile> tiles = game.getListOfTiles();
-
-    List<AnimatedBuilder> animatedBuilders = tiles
-        .map((e) => AnimatedBuilder(
+    List<AnimatedBuilder> animatedBuilders = tileAnimations
+        .map((animation) => AnimatedBuilder(
               animation: controller,
               builder: (context, child) {
-                double left = calcPositionOfTile(
-                    e.tileAnimation.x.value.floor(), fieldSize);
+                double left =
+                    calcPositionOfTile(animation.x.value.floor(), fieldSize);
 
-                double top = calcPositionOfTile(
-                    e.tileAnimation.y.value.floor(), fieldSize);
+                double top =
+                    calcPositionOfTile(animation.y.value.floor(), fieldSize);
 
                 return TileWidget(
-                  left: left - fieldSize * (e.size.value - 0.9) / 2,
-                  top: top - fieldSize * (e.size.value - 0.9) / 2,
-                  size: fieldSize * e.size.value,
-                  value: e.value,
+                  left: left - fieldSize * (animation.size.value - 0.9) / 2,
+                  top: top - fieldSize * (animation.size.value - 0.9) / 2,
+                  size: fieldSize * animation.size.value,
+                  value: animation.value,
                 );
               },
             ))
@@ -183,58 +207,3 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 }
-
-class TileWidget extends StatelessWidget {
-  const TileWidget({
-    Key key,
-    @required this.left,
-    @required this.top,
-    @required this.value,
-    @required this.size,
-  }) : super(key: key);
-
-  final double left;
-  final double top;
-  final double size;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: left,
-      top: top,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: Colors.grey[400],
-          borderRadius: BorderRadius.circular(5.0),
-        ),
-        child: Center(
-          child: Text(value.toString()),
-        ),
-      ),
-    );
-  }
-}
-
-/*Column(
-                children: [
-                  SizedBox(height: 40),
-                  Text("Hi Player! ${game.gameOver ? 'Game Over!' : ''}",
-                      style: TextStyle(color: Colors.white, fontSize: 22.0)),
-                  GridView.count(
-                      primary: true,
-                      physics: new NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.all(8.0),
-                      mainAxisSpacing: 4.0,
-                      crossAxisSpacing: 4.0,
-                      crossAxisCount: 4,
-                      children: [
-                        ...List<int>.generate(16, (i) => i)
-                            .map((index) =>
-                                FieldWidget(tile: game.map[index].tile))
-                            .toList(),
-                      ]),
-                ],
-              ), */
