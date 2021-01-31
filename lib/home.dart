@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:twentyfourtyeight/game_logic.dart/game.dart';
 import 'package:twentyfourtyeight/game_logic.dart/tile.dart';
 
-import 'package:twentyfourtyeight/helper/swipedetector.dart';
 import 'package:twentyfourtyeight/widgets/gamemapbuilder.dart';
+import 'package:twentyfourtyeight/widgets/swipedetector.dart';
 import 'package:twentyfourtyeight/widgets/tile_widget.dart';
 
 import 'animations/tile_animation_controller.dart';
@@ -27,6 +27,11 @@ class _HomePageState extends State<HomePage>
     controller =
         AnimationController(duration: Duration(milliseconds: 100), vsync: this);
 
+    initGame();
+    super.initState();
+  }
+
+  void initGame() {
     game = Game();
 
     tileAnimationController = TileAnimationController(controller, game);
@@ -46,9 +51,6 @@ class _HomePageState extends State<HomePage>
 
     game.onGameMapChange = onGameChanged;
     tileAnimationController.loadFirstTiles();
-
-    super.initState();
-
     controller.forward(from: 0);
   }
 
@@ -64,35 +66,61 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       body: Center(
         child: Container(
-          height: double.infinity,
+          color: Colors.blue,
           width: double.infinity,
-          child: SwipeDetector(
-            child: Container(
-              color: Colors.blue,
-              height: double.infinity,
-              width: double.infinity,
-              child: Center(
+          height: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Title(
+                  color: Colors.black,
+                  child: Text(
+                    "Your score is: ${game.getScore()}",
+                    style: TextStyle(color: Colors.white, fontSize: 22),
+                  )),
+              SizedBox(
+                height: 20,
+              ),
+              SwipeDetector(
+                child: Container(
+                    height: MediaQuery.of(context).size.width - 32,
+                    width: MediaQuery.of(context).size.width - 32,
+                    color: Colors.grey,
+                    child: GameMapBuilder(
+                      tileAnimations: tileAnimationController.tileAnimations,
+                      controller: controller,
+                    )),
+                onSwipeUp: () {
+                  game.moveUp();
+                },
+                onSwipeDown: () {
+                  game.moveDown();
+                },
+                onSwipeLeft: () {
+                  game.moveLeft();
+                },
+                onSwipeRight: () {
+                  game.moveRight();
+                },
+              ),
+              FlatButton(
+                  onPressed: () {
+                    initGame();
+                    setState(() => null);
+                  },
                   child: Container(
-                      height: MediaQuery.of(context).size.width - 32,
-                      width: MediaQuery.of(context).size.width - 32,
-                      color: Colors.grey,
-                      child: GameMapBuilder(
-                        tileAnimations: tileAnimationController.tileAnimations,
-                        controller: controller,
-                      ))),
-            ),
-            onSwipeUp: () {
-              game.moveUp();
-            },
-            onSwipeDown: () {
-              game.moveDown();
-            },
-            onSwipeLeft: () {
-              game.moveLeft();
-            },
-            onSwipeRight: () {
-              game.moveRight();
-            },
+                    margin: EdgeInsets.only(top: 30),
+                    padding: EdgeInsets.all(10),
+                    color: Colors.white,
+                    child: Text(
+                      'Reset Game',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 22,
+                      ),
+                    ),
+                  ))
+            ],
           ),
         ),
       ),

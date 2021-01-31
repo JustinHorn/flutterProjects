@@ -25,6 +25,15 @@ class Game {
     map[3].tile = Tile(2);
   }
 
+  int getScore() {
+    return map
+        .where((element) => element.hasTile())
+        .map((e) => e.tile.value)
+        .reduce((value, element) => value + element);
+  }
+
+  void resetBoard() {}
+
   List<Tile> getListOfTiles() {
     return map
         .where((element) => element.hasTile())
